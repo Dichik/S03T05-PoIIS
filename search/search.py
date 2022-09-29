@@ -85,7 +85,6 @@ def depthFirstSearch(problem: SearchProblem):
     understand the search problem that is being passed in:
 
     """
-    "*** YOUR CODE HERE ***"
     print("Start:", problem.getStartState())
     print("Is the start a goal?", problem.isGoalState(problem.getStartState()))
     print("Start's successors:", problem.getSuccessors(problem.getStartState()))
@@ -145,40 +144,33 @@ def translated(result):
 
 def breadthFirstSearch(problem: SearchProblem):
     """Search the shallowest nodes in the search tree first."""
-    "*** YOUR CODE HERE ***"
+    startState = problem.getStartState()
     queue = Queue()
-    used = set()
-    path = dict()
+    used = []
 
-    path[problem.getStartState()] = -1
-    used.add(problem.getStartState())
-    queue.push(problem.getStartState())
-    target = None
+    queue.push((startState, []))
     while not queue.isEmpty():
-        current = queue.pop()
-        successors = problem.getSuccessors(current)
+        current, path = queue.pop()
+
         if problem.isGoalState(current):
-            target = current
+            return path
+
+        successors = problem.getSuccessors(current)
         for i in range(0, len(successors)):
             _to = successors[i][0]
+            _direction = successors[i][1]
             if _to not in used:
-                queue.push(_to)
-                path[_to] = current
-                used.add(_to)
-
-    result = []
-    while target != -1:
-        result.append(target)
-        target = path.get(target)
-
-    result.reverse()
-    return translated(result)
+                used.append(_to)
+                new_path = path + [_direction]
+                queue.push((_to, new_path))
+    return []
 
 
 def uniformCostSearch(problem: SearchProblem):
     """Search the node of least total cost first."""
     "*** YOUR CODE HERE ***"
     util.raiseNotDefined()
+
 
 def nullHeuristic(state, problem=None):
     """
@@ -187,9 +179,9 @@ def nullHeuristic(state, problem=None):
     """
     return 0
 
+
 def aStarSearch(problem: SearchProblem, heuristic=nullHeuristic):
     """Search the node that has the lowest combined cost and heuristic first."""
-    "*** YOUR CODE HERE ***"
     frontier = util.PriorityQueue()
     start = problem.getStartState()
     frontier.push(start, 0)
@@ -204,7 +196,6 @@ def aStarSearch(problem: SearchProblem, heuristic=nullHeuristic):
         successors = problem.getSuccessors(current)
         if problem.isGoalState(current):
             target = current
-            break
 
         for i in range(0, len(successors)):
             _next = successors[i][0]
