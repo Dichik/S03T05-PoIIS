@@ -356,6 +356,7 @@ class PacmanRules:
         Edits the state to reflect the results of the action.
         """
         legal = PacmanRules.getLegalActions(state)
+        print(legal)
         if action not in legal:
             raise Exception("Illegal action " + str(action))
 
