@@ -19,6 +19,15 @@ import random, util
 from game import Agent
 from pacman import GameState
 
+
+def calculateCost(objPos, newPos):
+    x1 = objPos[0]
+    y1 = objPos[1]
+    x2 = newPos[0]
+    y2 = newPos[1]
+    return abs(x1 - x2) + abs(y1 - y2)
+
+
 class ReflexAgent(Agent):
     """
     A reflex agent chooses an action at each choice point by examining
@@ -28,7 +37,6 @@ class ReflexAgent(Agent):
     it in any way you see fit, so long as you don't touch our method
     headers.
     """
-
 
     def getAction(self, gameState: GameState):
         """
@@ -46,7 +54,7 @@ class ReflexAgent(Agent):
         scores = [self.evaluationFunction(gameState, action) for action in legalMoves]
         bestScore = max(scores)
         bestIndices = [index for index in range(len(scores)) if scores[index] == bestScore]
-        chosenIndex = random.choice(bestIndices) # Pick randomly among the best
+        chosenIndex = random.choice(bestIndices)  # Pick randomly among the best
 
         "Add more of your code here if you want to"
 
@@ -69,13 +77,58 @@ class ReflexAgent(Agent):
         """
         # Useful information you can extract from a GameState (pacman.py)
         successorGameState = currentGameState.generatePacmanSuccessor(action)
+
+        if successorGameState.isWin():
+            return 100000
+
         newPos = successorGameState.getPacmanPosition()
         newFood = successorGameState.getFood()
         newGhostStates = successorGameState.getGhostStates()
-        newScaredTimes = [ghostState.scaredTimer for ghostState in newGhostStates]
+        currentCapsules = currentGameState.getCapsules()
+        newScaredTimes = [ghostState.scaredTimer for ghostState in newGhostStates]  # not active ghost
+        totalScaredTime = sum(newScaredTimes)
 
         "*** YOUR CODE HERE ***"
-        return successorGameState.getScore()
+        # print("New pos: ", newPos)
+        # print("New food: ", newFood.asList())
+        # print("New Scared Times: ", newScaredTimes)
+        # print(newGhostStates)
+
+        # Key points and need to take into account:
+        # 1. [+] food positions and number (as it was and is)
+        # 2. [+] ghost is scared or not
+        # 3. [+] difference in score between states
+        # 4. [+] capsules and their number (as it was and is)
+        # 5. [+] ghost locations and min diff to them (try to be as far as possible from them is bad practice)
+
+        minCost = 5
+        avarageCost = 100
+        maxCost = 200
+
+        score = successorGameState.getScore() - currentGameState.getScore()
+
+        score -= minCost if action == Directions.STOP else 0
+
+        score += avarageCost * len(currentCapsules) if newPos in currentCapsules else 0
+
+        score += maxCost if newPos in newFood.asList() else 0
+
+        score -= minCost * len(newFood.asList())
+
+        costsToCurrentGhosts = [calculateCost(ghostPos.getPosition(), newPos) for ghostPos in
+                                currentGameState.getGhostStates()]
+        costToMinCurrentGhost = min(costsToCurrentGhosts)
+
+        costsToGhost = [calculateCost(ghostPos.getPosition(), newPos) for ghostPos in newGhostStates]
+        costToGhost = min(costsToGhost)
+
+        if totalScaredTime > 0:
+            score += maxCost if costToMinCurrentGhost < costToGhost else -avarageCost  # we want to go toward ghost
+        else:
+            score += -maxCost if costToMinCurrentGhost < costToGhost else avarageCost  # we don't want to meet ghost
+
+        return score
+
 
 def scoreEvaluationFunction(currentGameState: GameState):
     """
@@ -86,6 +139,7 @@ def scoreEvaluationFunction(currentGameState: GameState):
     (not reflex agents).
     """
     return currentGameState.getScore()
+
 
 class MultiAgentSearchAgent(Agent):
     """
@@ -102,10 +156,11 @@ class MultiAgentSearchAgent(Agent):
     is another abstract class.
     """
 
-    def __init__(self, evalFn = 'scoreEvaluationFunction', depth = '2'):
-        self.index = 0 # Pacman is always agent index 0
+    def __init__(self, evalFn='scoreEvaluationFunction', depth='2'):
+        self.index = 0  # Pacman is always agent index 0
         self.evaluationFunction = util.lookup(evalFn, globals())
         self.depth = int(depth)
+
 
 class MinimaxAgent(MultiAgentSearchAgent):
     """
@@ -138,6 +193,7 @@ class MinimaxAgent(MultiAgentSearchAgent):
         "*** YOUR CODE HERE ***"
         util.raiseNotDefined()
 
+
 class AlphaBetaAgent(MultiAgentSearchAgent):
     """
     Your minimax agent with alpha-beta pruning (question 3)
@@ -149,6 +205,7 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
         """
         "*** YOUR CODE HERE ***"
         util.raiseNotDefined()
+
 
 class ExpectimaxAgent(MultiAgentSearchAgent):
     """
@@ -165,6 +222,7 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
         "*** YOUR CODE HERE ***"
         util.raiseNotDefined()
 
+
 def betterEvaluationFunction(currentGameState: GameState):
     """
     Your extreme ghost-hunting, pellet-nabbing, food-gobbling, unstoppable
@@ -174,6 +232,7 @@ def betterEvaluationFunction(currentGameState: GameState):
     """
     "*** YOUR CODE HERE ***"
     util.raiseNotDefined()
+
 
 # Abbreviation
 better = betterEvaluationFunction
