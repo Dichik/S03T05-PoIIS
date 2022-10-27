@@ -223,8 +223,40 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
         Returns the minimax action using self.depth and self.evaluationFunction
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        score, bestAction = self.alpha_beta_pruning(self.index, 0, gameState)
+        return bestAction
 
+    def alpha_beta_pruning(self, agent, depth, gameState, alpha = -100000, beta = 100000):
+        legalActions = gameState.getLegalActions(agent)
+        totalAgens = gameState.getNumAgents() - 1
+        bestAction = None
+
+        if gameState.isWin() or gameState.isLose() or self.depth == depth:
+            return [self.evaluationFunction(gameState)]
+
+        nextAgent = self.index if agent == totalAgens else agent + 1
+        depth += 1 if agent == totalAgens else 0
+
+        if agent == self.index:
+            for action in legalActions:
+                if beta <= alpha:
+                    break
+                nextGameState = gameState.generateSuccessor(agent, action)
+                updatedAlpha = self.alpha_beta_pruning(nextAgent, depth, nextGameState, alpha, beta)[0]
+                if updatedAlpha > alpha:
+                    alpha = updatedAlpha
+                    bestAction = action
+            return alpha, bestAction
+        else:
+            for action in legalActions:
+                if beta <= alpha:
+                    break
+                nextGameState = gameState.generateSuccessor(agent, action)
+                updatedBeta = self.alpha_beta_pruning(nextAgent, depth, nextGameState, alpha, beta)[0]
+                if updatedBeta < beta:
+                    beta = updatedBeta
+                    bestAction = action
+            return beta, bestAction
 
 class ExpectimaxAgent(MultiAgentSearchAgent):
     """
@@ -238,8 +270,34 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
         All ghosts should be modeled as choosing uniformly at random from their
         legal moves.
         """
-        "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        legalActions = gameState.getLegalActions(0)
+        calculatedMinimaxes = [self.minimax(0, 0, gameState.generateSuccessor(0, action)) for action in legalActions]
+        maxAnswer = max(calculatedMinimaxes)
+        bestIndex = [index for index in range(len(legalActions)) if calculatedMinimaxes[index] == maxAnswer ]
+        return legalActions[bestIndex[0]]
+
+    def expectedValue(self, agent, depth, gameState):
+        legalActions = gameState.getLegalActions(agent)
+        result = list()
+        for action in legalActions:
+            successorState = gameState.generateSuccessor(agent, action)
+            result.append(self.minimax((agent + 1) % gameState.getNumAgents(), depth + 1, successorState))
+        return sum(result) / len(result)
+
+    def minimax(self, agent, depth, gameState):
+        if gameState.isWin() or gameState.isLose() or self.depth == depth:
+            return self.evaluationFunction(gameState)
+
+        if agent == 0:
+            return max(self.minimax(1, depth, gameState.generateSuccessor(agent, action)) for action in
+                       gameState.getLegalActions(agent))
+        else:
+            nextAgent = agent + 1
+            if gameState.getNumAgents() == nextAgent:
+                nextAgent = 0
+            if nextAgent == 0:
+                depth += 1
+            return self.expectedValue(nextAgent, depth, gameState)
 
 
 def betterEvaluationFunction(currentGameState: GameState):
