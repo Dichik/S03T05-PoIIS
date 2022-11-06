@@ -17,7 +17,6 @@ if __name__ == "__main__":
             and board.is_variant_draw() == False:
         if whitesTurn:
             user_input = str(input(f"Please, enter your move [\"{EXIT}\" - to finish]: "))
-            print(user_input)
             if user_input == EXIT:
                 break
             try:
@@ -28,9 +27,13 @@ if __name__ == "__main__":
             print(f"Whites move {move}")
             whitesTurn = False
         else:
-            score, move = engine.predict(board, MAX_DEPTH)
+            score, move = engine.predictMove(board, MAX_DEPTH)
             print(f"Blacks moves {move}")
             whitesTurn = True
-        board.push(move)
+        if board.is_legal(move):
+            board.push(move)
+        else:
+            whitesTurn = True
+
         print(board)
         print("--------")

@@ -6,11 +6,11 @@ from algorithm.PVS import PVS
 class GameEngine:
     def __init__(self, engineIndex):
         if engineIndex == 1:
-            self.predict = NegaMax.negaMax
+            self.predictor = NegaMax()
         elif engineIndex == 2:
-            self.predict = NegaScout.negaScout
+            self.predictor = NegaScout()
         elif engineIndex == 3:
-            self.predict = PVS.pvSearch
+            self.predictor = PVS()
 
     def predictMove(self, board, depth):
-        return self.predict(board, depth)
+        return self.predictor.predict(board, depth)
