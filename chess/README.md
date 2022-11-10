@@ -37,17 +37,32 @@ Now, let's declare some constants.
 
 ## 2. NegaScout Implementation
 
-- Idea: search first move fully to establish a lower bound v
+Like NegaMax but improvements rely on NegaMax framework and some fail-soft issues concerning the two last plies, which did not require any re-searches.
+
+- Idea: search first move fully to establish a lower bound
 - Null window search to try to prove that other moves have
 score <= v
 - If fail high, re-search to establish exact score of new, better
 move
 - With good move ordering, re-search rarely needed. Savings
-from using null window outweigh cost of re-search 
+from using null window outweigh cost of re-search
+
+NegaScout's fail-soft refinements always returns correct minimax scores at the two lowest levels, since it assumes that all horizon nodes would have the same score 
+for the (in that case redundant) re-search, which most programs can not guarantee due to possible extensions 
+and possible bound dependency of quiescence search and evaluation. 
+NegaScout just searches the first move with an open window, and then every move after that with a zero window, whether alpha was already improved or not. 
+Some PVS implementations wait until an alpha-improvement before using zero window at PV-Nodes.
+
+A Null Window, also called Zero Window, Scout Window or Narrow Window, is a way to reduce the search space in alpha-beta like search algorithms, to perform a boolean test, whether a move produces a worse or better score than a passed value. 
 
 ## 3. Principal variation search
 
 Very similar to NegaScout Algorithm.
+
+The difference is how they handle re-searches: PVS passes alpha/beta while NegaScout passes the value returned by the null window search instead of alpha. 
+But then you can get a fail-low on the research due to search anonomalies. If that happens NegaScout returns the value from the first search. 
+That means you will have a crippled PV. Then there is a refinement Reinefeld suggests which is to ommit the re-search at the last two plies (depth > 1) - but that won't work in a real program because of search extensions. 
+NegaScout is slightly an ivory tower variant of PVS (IMHO).
 
 ## 4. Game Engine
 Let's request which algorithm implementation we want to test.
