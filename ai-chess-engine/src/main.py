@@ -1,19 +1,21 @@
 import chess
 
-from src.tree.node import TwoPlayersGameMonteCarloTreeSearchNode
 from tree.search import MonteCarloTreeSearch
+from tree.node import MonteCarloTreeSearchNode
+
 
 def is_game_over(board):
     return board.is_checkmate() == True \
-            or board.is_variant_draw() == True
+           or board.is_variant_draw() == True
+
 
 if __name__ == "__main__":
 
     board = chess.Board()
-    while is_game_over(board) == False:
-        root = TwoPlayersGameMonteCarloTreeSearchNode(state = board)
+    while not is_game_over(board):
+        root = MonteCarloTreeSearchNode(state=board)
         mcts = MonteCarloTreeSearch(root)
-        best_move = mcts.best_action(total_simulation_time=1)
-
-        board.move(best_move)
+        best_move = mcts.best_action(root, total_simulation_time=1)
+        if best_move is not None:
+            board.push(best_move)
         print(board)
