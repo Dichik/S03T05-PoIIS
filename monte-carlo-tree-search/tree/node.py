@@ -1,3 +1,5 @@
+import numpy as np
+
 from collections import defaultdict
 
 
@@ -13,12 +15,13 @@ class MonteCarloTreeSearchNode:
         self._untried_actions = None
 
     def is_fully_expanded(self):
-        return len(self._untried_actions) == 0
+        return len(self.untried_actions) == 0
 
+    @property
     def untried_actions(self):
-        if self.untried_actions is None:
-            return self.state.legal_moves
-        return self.untried_actions
+        if self._untried_actions is None:
+            self._untried_actions = list(self.state.legal_moves)
+        return self._untried_actions
 
     def best_child(self, c_param=1.4):
         # here we calculating UCT (Upper Confidence Bound applied to trees)
@@ -27,8 +30,7 @@ class MonteCarloTreeSearchNode:
         return self.children[0]
 
     def rollout_policy(self, possible_moves):
-        pass
-        # Q: what is rollout policy we have?
+        return possible_moves[np.randint(len(possible_moves))]
 
     def expand(self):
         pass
@@ -40,10 +42,14 @@ class MonteCarloTreeSearchNode:
                or self.state.is_variant_draw() == True
 
     def rollout(self):
-        pass
+        current_state = self.state
+        while not current_state.is_terminal_state():
+            action = self.rollout_policy(current_state.legal_moves)
+            current_rollout_state = self.state.push(action)
+        return current_rollout_state
 
     def backpropagate(self, result):
         self._number_of_visits += 1
-        self._results += 1
-        if result.parent is not None:
-            self.backpropagate(result.parent)
+        self._results[result] += 1
+        if result.parent:
+            self.parent.backpropagate(result)

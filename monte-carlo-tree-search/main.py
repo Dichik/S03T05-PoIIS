@@ -4,9 +4,8 @@ from tree.search import MonteCarloTreeSearch
 from tree.node import MonteCarloTreeSearchNode
 
 
-def is_game_over(board):
-    return board.is_checkmate() == True \
-           or board.is_variant_draw() == True
+def is_game_over(state):
+    return state.is_checkmate() or state.is_variant_draw()
 
 
 if __name__ == "__main__":
