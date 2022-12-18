@@ -1,5 +1,6 @@
 import copy
 
+import chess
 import numpy as np
 
 from collections import defaultdict
@@ -26,20 +27,36 @@ class MonteCarloTreeSearchNode:
             self._untried_actions = list(self.state.legal_moves)
         return self._untried_actions
 
+    def evaluate(self, board):
+        white = board.occupied_co[chess.WHITE]
+        black = board.occupied_co[chess.BLACK]
+        return self.material_balance(board, white, black) * (chess.popcount(white) - chess.popcount(black))
+
+    def material_balance(self, board, white, black):
+        return (
+                chess.popcount(white & board.pawns) - chess.popcount(black & board.pawns) +
+                3 * (chess.popcount(white & board.knights) - chess.popcount(black & board.knights)) +
+                3 * (chess.popcount(white & board.bishops) - chess.popcount(black & board.bishops)) +
+                5 * (chess.popcount(white & board.rooks) - chess.popcount(black & board.rooks)) +
+                9 * (chess.popcount(white & board.queens) - chess.popcount(black & board.queens))
+        )
+
     @property
     def q(self):
-        wins = self._results[self.parent.state]
-        loses = self._results[-1 * self.parent.state]
-        return wins - loses
+        return self.evaluate(self.state)
 
     def best_child(self, c_param=1.4):
         choices_weights = [
             (c.q / c._number_of_visits) + c_param * np.sqrt((2 * np.log(self._number_of_visits) / c._number_of_visits))
             for c in self.children
         ]
+        if choices_weights is []:
+            return None
         return self.children[np.argmax(choices_weights)]
 
     def rollout_policy(self, possible_moves):
+        if len(possible_moves) == 0:
+            return None
         return possible_moves[np.random.randint(len(possible_moves))]
 
     def expand(self):
@@ -58,14 +75,17 @@ class MonteCarloTreeSearchNode:
 
     def rollout(self):
         current_rollout_state = self.state
-        while not self.is_terminal_node(current_rollout_state):
+        number_of_rollouts = 100
+        while not self.is_terminal_node(current_rollout_state) and number_of_rollouts > 0:
             possible_moves = list(current_rollout_state.legal_moves)
             action = self.rollout_policy(possible_moves)
-            current_rollout_state.push(action)
+            if action is not None:
+                current_rollout_state.push(action)
+            number_of_rollouts -= 1
         return current_rollout_state
 
     def backpropagate(self, result):
-        self._number_of_visits += 1
-        self._results[result] += 1
-        if result.parent:
+        self._number_of_visits += 1.
+        self._results[str(result)] = self.evaluate(result)
+        if self.parent:
             self.parent.backpropagate(result)

@@ -1,3 +1,5 @@
+import copy
+
 import chess
 
 from tree.search import MonteCarloTreeSearch
@@ -14,7 +16,10 @@ if __name__ == "__main__":
     while not is_game_over(board):
         root = MonteCarloTreeSearchNode(state=board)
         mcts = MonteCarloTreeSearch(root)
-        best_move = mcts.best_action(root, total_simulation_time=1)
-        if best_move is not None:
-            board.push(best_move)
-        print(board)
+        best_state = mcts.best_action(total_simulation_time=1)
+        if best_state is None:
+            continue
+        print("--------------")
+        print(best_state.state)
+
+    print("Game is over!")
