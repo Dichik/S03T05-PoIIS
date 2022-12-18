@@ -1,8 +1,11 @@
+import copy
+
 import numpy as np
 
 from collections import defaultdict
 
 
+# Q: what do we store in results?
 class MonteCarloTreeSearchNode:
 
     def __init__(self, state, parent=None):
@@ -37,11 +40,12 @@ class MonteCarloTreeSearchNode:
         return self.children[np.argmax(choices_weights)]
 
     def rollout_policy(self, possible_moves):
-        return possible_moves[np.randint(len(possible_moves))]
+        return possible_moves[np.random.randint(len(possible_moves))]
 
     def expand(self):
         action = self._untried_actions.pop()
-        next_state = self.state.push(action)
+        next_state = copy.copy(self.state)
+        next_state.push(action)
         child_node = MonteCarloTreeSearchNode(state=next_state, parent=self)
         self.children.append(child_node)
         return child_node
@@ -55,9 +59,9 @@ class MonteCarloTreeSearchNode:
     def rollout(self):
         current_rollout_state = self.state
         while not self.is_terminal_node(current_rollout_state):
-            possible_moves = current_rollout_state.legal_moves
+            possible_moves = list(current_rollout_state.legal_moves)
             action = self.rollout_policy(possible_moves)
-            current_rollout_state = current_rollout_state.push(action)
+            current_rollout_state.push(action)
         return current_rollout_state
 
     def backpropagate(self, result):
