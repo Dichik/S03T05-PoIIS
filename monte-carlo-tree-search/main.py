@@ -1,9 +1,7 @@
-import copy
-
 import chess
 
-from tree.search import MonteCarloTreeSearch
 from tree.node import MonteCarloTreeSearchNode
+from tree.search import MonteCarloTreeSearch
 
 
 def is_game_over(state):

@@ -1,9 +1,8 @@
 import copy
+from collections import defaultdict
 
 import chess
 import numpy as np
-
-from collections import defaultdict
 
 
 # Q: what do we store in results?
