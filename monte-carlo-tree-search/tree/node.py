@@ -62,7 +62,7 @@ class MonteCarloTreeSearchNode:
         action = self._untried_actions.pop()
         next_state = copy.copy(self.state)
         next_state.push(action)
-        child_node = MonteCarloTreeSearchNode(state=next_state, parent=self)
+        child_node = MonteCarloTreeSearchNode(state=copy.copy(next_state), parent=self)
         self.children.append(child_node)
         return child_node
 

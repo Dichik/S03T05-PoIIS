@@ -18,7 +18,7 @@ class MonteCarloTreeSearch:
 
     @staticmethod
     def resources_left(end_time):
-        return end_time - time.time() > 0
+        return end_time > time.time()
 
     def traverse(self):
         current_node = self.root
